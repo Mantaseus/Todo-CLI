@@ -6,9 +6,6 @@ DEFAULT_CATEGORY_FILE = '~/.todocli/default_cat'
 
 # PRIVATE FUNCTIONS -------------------------------------------------------------------------------
 
-def _get_category_file_path(category):
-    return ''
-
 def _check_category_exists(category):
     # Get the file name for the category
     # Check if the file exists
@@ -74,11 +71,18 @@ def set_default_category(category):
     # Write the category name to default_cat file
     pass
 
-def add_to_category(category=''):
-    if not category:
-        category = get_default_category()
+def get_category_file_path(category):
+    return ''
 
+def add_to_category(category):
     # Get the new tasks from the user
     # Append the tasks to unfinished section of the categorys
 
     pass
+
+def get_tasks_for_section(category, section_name):
+    # Get the category file path
+    # Get tasks for all the sections
+    # Return the tasks for the given section
+    return []
+

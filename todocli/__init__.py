@@ -1,8 +1,10 @@
 """
 Usage:
     todo
+        [ -n=<val> | --num-of-tasks=<val> ]
     todo <category_name>
         [ -a | --all-unfinished-tasks ]
+        [ -t=<val> | --num-of-tasks=<val> ]
     todo add
     todo add <category_name>
     todo done <task_id>
@@ -23,6 +25,8 @@ Options:
         Edit the raw todo logs
     -l, --list-all
         List all categories resistered with the todo CLI
+    -t=<val>, --num-of-tasks=<val>
+        The number of the highest priority tickets to print out [default: 3]
     -d=<val>, --set-default=<val>
         Set the provided <val> as the default category for all the
         relevant commands
@@ -31,11 +35,32 @@ Options:
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 from pprint import pprint
 
 from docopt import docopt
 
+import category_manager
+
+# HELPERS -----------------------------------------------------------------------------------------
+
+def print_tasks(tasks):
+    print(tasks)
+
 # ARGS HANDLERS -----------------------------------------------------------------------------------
+
+def handle_default():
+    category_name = args['<category_name>']
+    if not category_name:
+        category_name = category_manager.get_default_category()
+
+    unfinished_tasks = category_manager.get_tasks_for_section(category_name, 'Unfinished')
+
+    # Do the formatting for the printout
+    if args['--all-unfinished-tasks']:
+        print_tasks(unfinished_tasks)
+    else:
+        print_tasks(unfinished_tasks[:int(args['--num-of-tasks'])])
 
 def handle_add():
     pass
@@ -47,9 +72,6 @@ def handle_edit():
     pass
 
 def handle_cats():
-    pass
-
-def handle_default():
     pass
 
 # MAIN --------------------------------------------------------------------------------------------
