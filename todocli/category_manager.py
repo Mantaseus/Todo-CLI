@@ -1,22 +1,14 @@
+from __future__ import print_function
+from pprint import pprint
+import os
+import shelve
 
 # CONSTANTS ---------------------------------------------------------------------------------------
 
-CATERORY_TASK_FILE_DIR = '~/.todocli/cats'
-DEFAULT_CATEGORY_FILE = '~/.todocli/default_cat'
+CATEGORY_FILE_DIR = os.path.expanduser('~/.todocli/cats')
+DEFAULT_CATEGORY_FILE = os.path.expanduser('~/.todocli/default_cat')
 
 # PRIVATE FUNCTIONS -------------------------------------------------------------------------------
-
-def _check_category_exists(category):
-    # Get the file name for the category
-    # Check if the file exists
-    return False
-
-def _create_category(category_file_path):
-    # Check that the category exists. If it does then exit
-    
-    # Write the text for the unfinished and finished sections of the categorys to the category_file_path
-    #   use _write_sections function
-    pass
 
 def _append_tasks_to_category_section(category_file_path, section_name, tasks):
     # Get tasks for all the sections in the category file and put it in a dict (key is section_name,
@@ -25,9 +17,6 @@ def _append_tasks_to_category_section(category_file_path, section_name, tasks):
     # Append the tasks to the appropriate section list
 
     # Write all the sections to the category file
-    pass
-
-def _write_sections_to_category_file(category_file_path, sections):
     pass
 
 def _get_sections_data_for_category(category_file_path):
@@ -62,27 +51,88 @@ def _add_bulleted_tasks_to_category(category_file_path):
 
 # PUBLIC FUNCTIONS --------------------------------------------------------------------------------
 
+def setup_storage_dir():
+    if not os.path.exists(CATEGORY_FILE_DIR):
+        os.makedirs(CATEGORY_FILE_DIR)
+
+def get_categories():
+    return os.listdir(CATEGORY_FILE_DIR)
+
+def get_category_file_path(category):
+    return os.path.join(CATEGORY_FILE_DIR, category)
+
+def check_category_exists(category):
+    return os.path.isfile(get_category_file_path(category))
+
 def get_default_category():
-    # Read the value in default_cat file
+    try:
+        with open(DEFAULT_CATEGORY_FILE, 'r') as default_cat_file:
+            return default_cat_file
+    except:
+        pass
     return ''
 
 def set_default_category(category):
     # Check that the category exists. Throw error if it does not exist
+    if not check_category_exists(category):
+        print("Can not set a nonexistent category '{}' as the default category".format(category))
+        return
+
     # Write the category name to default_cat file
-    pass
+    with open(DEFAULT_CATEGORY_FILE, 'w') as default_cat_file:
+        default_cat_file.write(category)
 
-def get_category_file_path(category):
-    return ''
+def create_category(category):
+    # Check that the category exists. If it does then exit
+    if check_category_exists(category):
+        print("The category '{}' already exists. No need to create a new one".format(category))
+        return
+    
+    # Write the text for the unfinished and finished sections of the categorys to the 
+    # category_file_path
+    with shelve.open(get_category_file_path(category)) as category_file:
+        category_file['Unfinished'] = []
+        category_file['Finished'] = []
 
-def add_to_category(category):
+    # If the default category file is empty then set this category as the default category for now
+    if not get_default_category():
+        set_default_category(category)
+
+def get_tasks_for_section(category, section_name):
+    if not check_category_exists(category):
+        raise Exception("The category '{}' does not exist".format(category))
+
+    with shelve.open(get_category_file_path(category)) as category_file:
+        return category_file.get(section_name, [])
+
+def add_tasks_to_category(category):
     # Get the new tasks from the user
     # Append the tasks to unfinished section of the categorys
 
     pass
 
-def get_tasks_for_section(category, section_name):
+def set_task_as_done(category, task_id):
     # Get the category file path
     # Get tasks for all the sections
-    # Return the tasks for the given section
-    return []
+    # Find the appropriate task_id from the unfinished section
+        # If not found then throw error
+    # If an appropriate task is found then take it out of the unfinished section and put in into
+    #   the finished section
+    pass
+
+def edit_category(category, raw=False):
+    # Get the category file name
+    # Get the tasks for the category
+    # Create a temporary file
+        # Generate the text to display in the file
+        # Write the text to the file
+    # Open the temp file in the default editor
+    # After the user is done editing open the temp file again
+        # For each section look at the task id, the done state (i.e. '[ ]' or '[X]') and the task
+        #   text
+
+    # TODO description not fully defined
+    # Update the 
+
+    pass
 

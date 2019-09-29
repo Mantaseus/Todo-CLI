@@ -1,10 +1,11 @@
 """
 Usage:
     todo
-        [ -n=<val> | --num-of-tasks=<val> ]
-    todo <category_name>
+        [ -t=<val> | --num-of-tasks-to-list=<val> ]
+    todo 
         [ -a | --all-unfinished-tasks ]
-        [ -t=<val> | --num-of-tasks=<val> ]
+        [ -c=<val> | --category-name=<val> ]
+        [ -t=<val> | --num-of-tasks-to-list=<val> ]
     todo add
     todo add <category_name>
     todo done <task_id>
@@ -21,13 +22,15 @@ Usage:
 Options:
     -a, --all-unfinished-tasks
         Lists out all the unfinished tasks instead of just the top 3
-    -r, --raw
-        Edit the raw todo logs
     -l, --list-all
         List all categories resistered with the todo CLI
+    -r, --raw 
+        Edit the raw todo logs 
+    -c=<val>, --category-name=<val>
+        The name of the category to list tasks for
     -t=<val>, --num-of-tasks=<val>
         The number of the highest priority tickets to print out [default: 3]
-    -d=<val>, --set-default=<val>
+    -d=<val>, --set-default-cat=<val>
         Set the provided <val> as the default category for all the
         relevant commands
     -n=<val>, --create-new-cat=<val>
@@ -47,6 +50,9 @@ import category_manager
 def print_tasks(tasks):
     print(tasks)
 
+def print_categories(categories):
+    print(categories)
+
 # ARGS HANDLERS -----------------------------------------------------------------------------------
 
 def handle_default():
@@ -60,27 +66,46 @@ def handle_default():
     if args['--all-unfinished-tasks']:
         print_tasks(unfinished_tasks)
     else:
-        print_tasks(unfinished_tasks[:int(args['--num-of-tasks'])])
+        print_tasks(unfinished_tasks[:int(args['--num-of-tasks-to-list'])])
 
 def handle_add():
-    pass
+    category_name = args['<category_name>']
+    if not category_name:
+        category_name = category_manager.get_default_category()
+
+    category_manager.add_tasks_to_category(category_name)
 
 def handle_done():
-    pass
+    category_name = args['<category_name>']
+    if not category_name:
+        category_name = category_manager.get_default_category()
+
+    category_manager.set_tasks_as_done(category_name, args['<task_id>'])
 
 def handle_edit():
     pass
 
 def handle_cats():
-    pass
+    if args['--create-new-cat']:
+        category_manager.create_category(args['--create-new-cat'])
+        return
+
+    if args['--set-default-cat']:
+        category_manager.set_default_category(args['--set-default-cat'])
+        return
+
+    # The default behavior is to just print out all the categories
+    print_categories(category_manager.get_categories())
 
 # MAIN --------------------------------------------------------------------------------------------
 
 def run_main():
     global args
     args = docopt(__doc__)
-
     pprint(args)
+
+    # Create the storage directories for the tasks files if they don't already exist
+    category_manager.setup_storage_dir()
 
     if args['add']:
         handle_add()
@@ -103,3 +128,4 @@ def run_main():
 
 if __name__ == '__main__':
     run_main()
+
