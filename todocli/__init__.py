@@ -77,7 +77,7 @@ def run_main():
         exit()
 
     # Default case
-    handle_add()
+    handle_default()
 
 if __name__ == '__main__':
     run_main()
