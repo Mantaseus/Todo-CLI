@@ -2,11 +2,33 @@ from __future__ import print_function
 from pprint import pprint
 import os
 import shelve
+import tempfile
+import subprocess
 
 # CONSTANTS ---------------------------------------------------------------------------------------
 
 CATEGORY_FILE_DIR = os.path.expanduser('~/.todocli/cats')
 DEFAULT_CATEGORY_FILE = os.path.expanduser('~/.todocli/default_cat')
+
+# PRIVATE: TEMP FILE MANAGEMENT -------------------------------------------------------------------
+# Copied from https://stackoverflow.com/a/48466593
+
+def _raw_input_editor(default=None, editor=None):
+    ''' like the built-in raw_input(), except that it uses a visual
+    text editor for ease of editing. Unlike raw_input() it can also
+    take a default value. '''
+    with tempfile.NamedTemporaryFile(mode='r+') as tmpfile:
+        if default:
+            tmpfile.write(default)
+            tmpfile.flush()
+        subprocess.check_call([editor or _get_editor(), tmpfile.name])
+        tmpfile.seek(0)
+        return tmpfile.read().strip()
+
+def _get_editor():
+    return (os.environ.get('VISUAL')
+        or os.environ.get('EDITOR')
+        or 'vi')
 
 # PRIVATE FUNCTIONS -------------------------------------------------------------------------------
 
@@ -106,10 +128,23 @@ def get_tasks_for_section(category, section_name):
         return category_file.get(section_name, [])
 
 def add_tasks_to_category(category):
-    # Get the new tasks from the user
-    # Append the tasks to unfinished section of the categorys
+    help_text = "# Add tasks as bullet points using the markdown syntax ('-'). The tasks can\n" + \
+                "# be multiline. You can also add multiple tasks at the same time using the\n" + \
+                "# bullet point syntax. Any line starting with a '#' will be ignored. Any\n" + \
+                "# lines between 2 lines starting with '-' are considered a part of the\n" + \
+                "# the previous task.\n" + \
+                "#\n" + \
+                "# For example, the following would add 2 new tasks\n" + \
+                "# - This is my first task\n" + \
+                "#     - Some details about the first task\n" + \
+                "# - This is the second task\n\n"
 
-    pass
+    user_input = _raw_input_editor(default=help_text)
+    print(user_input)
+
+    # After use is done, read the temp file
+        # Parse the tasks out of the temp file
+    # Append the tasks to unfinished section of the categorys
 
 def set_task_as_done(category, task_id):
     # Get the category file path
