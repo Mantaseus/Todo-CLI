@@ -35,6 +35,23 @@ from pprint import pprint
 
 from docopt import docopt
 
+# ARGS HANDLERS -----------------------------------------------------------------------------------
+
+def handle_add():
+    pass
+
+def handle_done():
+    pass
+
+def handle_edit():
+    pass
+
+def handle_cats():
+    pass
+
+def handle_default():
+    pass
+
 # MAIN --------------------------------------------------------------------------------------------
 
 def run_main():
@@ -42,6 +59,25 @@ def run_main():
     args = docopt(__doc__)
 
     pprint(args)
+
+    if args['add']:
+        handle_add()
+        exit()
+
+    if args['done']:
+        handle_done()
+        exit()
+
+    if args['edit']:
+        handle_edit()
+        exit()
+
+    if args['cats']:
+        handle_cats()
+        exit()
+
+    # Default case
+    handle_add()
 
 if __name__ == '__main__':
     run_main()
