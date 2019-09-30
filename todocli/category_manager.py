@@ -13,17 +13,39 @@ CATEGORY_FILE_DIR = os.path.expanduser('~/.todocli/cats')
 DEFAULT_CATEGORY_FILE = os.path.expanduser('~/.todocli/default_cat')
 
 # PRIVATE: TEMP FILE MANAGEMENT -------------------------------------------------------------------
-# Copied from https://stackoverflow.com/a/48466593
+# Copied from https://stackoverflow.com/a/48466593 with some modifications
 
 def _raw_input_editor(default=None, editor=None):
-    ''' like the built-in raw_input(), except that it uses a visual
-    text editor for ease of editing. Unlike raw_input() it can also
-    take a default value. '''
     with tempfile.NamedTemporaryFile(mode='r+') as tmpfile:
+        # Write the default text to the temp file
         if default:
             tmpfile.write(default)
             tmpfile.flush()
-        subprocess.check_call([editor or _get_editor(), tmpfile.name])
+
+        # Get the available editor
+        editor = editor or _get_editor()
+
+        # Build the command to open the file in the editor
+        command = [editor, tmpfile.name]
+        if editor in ['vi', 'vim']:
+            # Setup vi editor to enforce auto wrapping after 80 lines
+            command.append('-c')
+            command.append('set textwidth=80')
+            command.append('-c')
+            command.append('set ft=markdown')
+            command.append('-c')
+            command.append('set smartindent')
+
+        # Run the command
+        try:
+            subprocess.check_call(command)
+        except Exception as e:
+            # Some error happened. Do nothing
+            print(e)
+            print('Add operation canceled')
+            return ''
+
+        # Get the output from the temp file
         tmpfile.seek(0)
         return tmpfile.read().strip()
 

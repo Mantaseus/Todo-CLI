@@ -52,7 +52,6 @@ def print_tasks(category, tasks):
     print("{} unfinished tasks for '{}'\n".format(len(tasks), category))
     for task in tasks:
         description = task.get('description', '')
-        description = description.replace('\n', '\n   ')
         print('{}. {}'.format(task.get('id', ''), description))
 
 def print_categories(categories):
@@ -82,7 +81,6 @@ def handle_add():
     if not category_name:
         category_name = category_manager.get_default_category()
 
-    print(category_name)
     category_manager.add_tasks_to_category(category_name)
 
 def handle_done():
