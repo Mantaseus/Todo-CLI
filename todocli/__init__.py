@@ -61,11 +61,15 @@ def print_categories(categories):
 # ARGS HANDLERS -----------------------------------------------------------------------------------
 
 def handle_default():
-    category_name = args['<category_name>']
+    category_name = args['--category-name']
     if not category_name:
         category_name = category_manager.get_default_category()
 
-    unfinished_tasks = category_manager.get_tasks_for_section(category_name, 'unfinished')
+    try:
+        unfinished_tasks = category_manager.get_tasks_for_section(category_name, 'unfinished')
+    except Exception as e:
+        print(e)
+        return
 
     # Do the formatting for the printout
     if args['--all-unfinished-tasks']:
