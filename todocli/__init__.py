@@ -1,6 +1,7 @@
 """
 Usage:
     todo
+        [ -a | --all-unfinished-tasks ]
         [ -t=<val> | --num-of-tasks-to-list=<val> ]
     todo 
         [ -a | --all-unfinished-tasks ]
@@ -28,7 +29,7 @@ Options:
         Edit the raw todo logs 
     -c=<val>, --category-name=<val>
         The name of the category to list tasks for
-    -t=<val>, --num-of-tasks=<val>
+    -t=<val>, --num-of-tasks-to-list=<val>
         The number of the highest priority tickets to print out [default: 3]
     -d=<val>, --set-default-cat=<val>
         Set the provided <val> as the default category for all the
@@ -47,8 +48,12 @@ import category_manager
 
 # HELPERS -----------------------------------------------------------------------------------------
 
-def print_tasks(tasks):
-    print(tasks)
+def print_tasks(category, tasks):
+    print("{} unfinished tasks for '{}'\n".format(len(tasks), category))
+    for task in tasks:
+        description = task.get('description', '')
+        description = description.replace('\n', '\n   ')
+        print('{}. {}'.format(task.get('id', ''), description))
 
 def print_categories(categories):
     print(categories)
@@ -60,13 +65,13 @@ def handle_default():
     if not category_name:
         category_name = category_manager.get_default_category()
 
-    unfinished_tasks = category_manager.get_tasks_for_section(category_name, 'Unfinished')
+    unfinished_tasks = category_manager.get_tasks_for_section(category_name, 'unfinished')
 
     # Do the formatting for the printout
     if args['--all-unfinished-tasks']:
-        print_tasks(unfinished_tasks)
+        print_tasks(category_name, unfinished_tasks)
     else:
-        print_tasks(unfinished_tasks[:int(args['--num-of-tasks-to-list'])])
+        print_tasks(category_name, unfinished_tasks[:int(args['--num-of-tasks-to-list'])])
 
 def handle_add():
     category_name = args['<category_name>']
@@ -103,7 +108,6 @@ def handle_cats():
 def run_main():
     global args
     args = docopt(__doc__)
-    pprint(args)
 
     # Create the storage directories for the tasks files if they don't already exist
     category_manager.setup_storage_dir()
