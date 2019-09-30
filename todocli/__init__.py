@@ -73,6 +73,7 @@ def handle_add():
     if not category_name:
         category_name = category_manager.get_default_category()
 
+    print(category_name)
     category_manager.add_tasks_to_category(category_name)
 
 def handle_done():

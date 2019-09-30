@@ -1,9 +1,11 @@
 from __future__ import print_function
 from pprint import pprint
+from datetime import datetime
 import os
 import shelve
 import tempfile
 import subprocess
+import re
 
 # CONSTANTS ---------------------------------------------------------------------------------------
 
@@ -89,7 +91,7 @@ def check_category_exists(category):
 def get_default_category():
     try:
         with open(DEFAULT_CATEGORY_FILE, 'r') as default_cat_file:
-            return default_cat_file
+            return default_cat_file.read()
     except:
         pass
     return ''
@@ -113,8 +115,10 @@ def create_category(category):
     # Write the text for the unfinished and finished sections of the categorys to the 
     # category_file_path
     with shelve.open(get_category_file_path(category)) as category_file:
-        category_file['Unfinished'] = []
-        category_file['Finished'] = []
+        category_file['unfinished'] = []
+        category_file['finished'] = []
+        category_file['archived'] = []
+        category_file['next_task_id'] = 0
 
     # If the default category file is empty then set this category as the default category for now
     if not get_default_category():
@@ -139,12 +143,52 @@ def add_tasks_to_category(category):
                 "#     - Some details about the first task\n" + \
                 "# - This is the second task\n\n"
 
-    user_input = _raw_input_editor(default=help_text)
-    print(user_input)
+    # TODO remove this code once we are done with testing the `add` operation
+    test_text = "Test\n" + \
+                "- Hello\n" + \
+                " - There\n" + \
+                "-      Another\n" + \
+                "       One\n" + \
+                "       there"
 
-    # After use is done, read the temp file
-        # Parse the tasks out of the temp file
-    # Append the tasks to unfinished section of the categorys
+    user_input = _raw_input_editor(default=help_text+test_text)
+
+    # Parse the tasks out of the temp file
+    raw_tasks = []
+    user_lines = user_input.split('\n')
+    for line in user_lines:
+        # Ignore lines with '#'
+        if line.startswith('#'):
+            continue
+        
+        # If a valid markdown bullet point is found in the text then create a new empty entry
+        # in the raw_tasks list
+        if line.startswith('-'):
+            raw_tasks.append('')
+
+            # Remove the bullet point from the line
+            line = re.sub(r'^- *', '', line) 
+
+        # If there is no entry in the raw_tasks list yet then skip
+        # This will make sure that any text before the first bullet point will be ignored
+        if not raw_tasks:
+            continue
+
+        # Append any line
+        raw_tasks[-1] += line + '\n'
+
+    # Append the tasks to unfinished section of the categories
+    with shelve.open(get_category_file_path(category)) as category_file:
+        unfinished_tasks = category_file['unfinished']
+        for task in raw_tasks:
+            unfinished_tasks.append({
+                'id': category_file['next_task_id'],
+                'created': datetime.now(),
+                'edited': datetime.now(),
+                'description': task
+            })
+            category_file['next_task_id'] += 1
+        category_file['unfinished'] = unfinished_tasks
 
 def set_task_as_done(category, task_id):
     # Get the category file path
