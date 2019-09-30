@@ -143,15 +143,7 @@ def add_tasks_to_category(category):
                 "#     - Some details about the first task\n" + \
                 "# - This is the second task\n\n"
 
-    # TODO remove this code once we are done with testing the `add` operation
-    test_text = "Test\n" + \
-                "- Hello\n" + \
-                " - There\n" + \
-                "-      Another\n" + \
-                "       One\n" + \
-                "       there"
-
-    user_input = _raw_input_editor(default=help_text+test_text)
+    user_input = _raw_input_editor(default=help_text)
 
     # Parse the tasks out of the temp file
     raw_tasks = []
