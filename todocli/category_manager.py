@@ -217,7 +217,6 @@ def move_task(category, task_id, from_section, to_section):
                 for i, task in enumerate(from_tasks)
                 if task['id'] == task_id
             )
-            print(task_index)
         except StopIteration:
             print("Task ID '{}' not found in section '{}' of category '{}'".format(
                 task_id, 

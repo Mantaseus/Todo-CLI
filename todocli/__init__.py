@@ -11,6 +11,8 @@ Usage:
     todo add <category_name>
     todo done <task_id>
     todo done <category_name> <task_id>
+    todo delete <task_id>
+    todo delete <category_name> <task_id>
     todo edit
         [ -r | --raw ]
     todo edit <category_name>
@@ -108,6 +110,14 @@ def handle_done():
     task_id = int(args['<task_id>'])
     category_manager.move_task(category_name, task_id, 'unfinished', 'finished')
 
+def handle_delete():
+    category_name = args['<category_name>']
+    if not category_name:
+        category_name = category_manager.get_default_category()
+
+    task_id = int(args['<task_id>'])
+    category_manager.move_task(category_name, task_id, 'unfinished', 'archived')
+
 def handle_edit():
     pass
 
@@ -137,6 +147,10 @@ def run_main():
         exit()
 
     if args['done']:
+        handle_done()
+        exit()
+
+    if args['delete']:
         handle_done()
         exit()
 
