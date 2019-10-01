@@ -58,12 +58,27 @@ def wrap_text(text, width=category_manager.DEFAULT_TEXT_WIDTH):
         for line in text.split('\n')
     ])
 
-def print_tasks(category, tasks):
-    print("\n {} unfinished tasks for '{}'".format(len(tasks), category))
+def print_tasks(category, section_name, limit=0):
+    try:
+        tasks = category_manager.get_tasks_for_section(category, section_name)
+    except Exception as e:
+        print(e)
+        return
+
+    # If limit is not defined then show all tasks
+    if not limit:
+        limit = len(tasks)
+
+    print("\n Showing {}/{} {} tasks for '{}'".format(
+        limit,
+        len(tasks),
+        section_name,
+        category
+    ))
 
     # Generate the data to print
     data_to_print = []
-    for task in tasks:
+    for task in tasks[:limit]:
         description = wrap_text(task.get('description', ''))
         data_to_print.append([task.get('id'), description])
 
@@ -83,17 +98,14 @@ def handle_default():
     if not category_name:
         category_name = category_manager.get_default_category()
 
-    try:
-        unfinished_tasks = category_manager.get_tasks_for_section(category_name, 'unfinished')
-    except Exception as e:
-        print(e)
-        return
-
     # Do the formatting for the printout
+    tasks_limit = 0
     if args['--all-unfinished-tasks']:
-        print_tasks(category_name, unfinished_tasks)
-    else:
-        print_tasks(category_name, unfinished_tasks[:int(args['--num-of-tasks-to-list'])])
+        tasks_limit = int(args['--num-of-tasks-to-list'])
+    
+    print_tasks(category_name, 'unfinished', tasks_limit)
+    print_tasks(category_name, 'finished', tasks_limit)
+    print_tasks(category_name, 'archived', tasks_limit)
 
 def handle_add():
     category_name = args['<category_name>']
