@@ -163,7 +163,7 @@ def run_main():
         exit()
 
     if args['delete']:
-        handle_done()
+        handle_delete()
         exit()
 
     if args['edit']:
