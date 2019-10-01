@@ -105,7 +105,8 @@ def handle_done():
     if not category_name:
         category_name = category_manager.get_default_category()
 
-    category_manager.set_tasks_as_done(category_name, args['<task_id>'])
+    task_id = int(args['<task_id>'])
+    category_manager.move_task(category_name, task_id, 'unfinished', 'finished')
 
 def handle_edit():
     pass

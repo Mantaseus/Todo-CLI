@@ -206,14 +206,31 @@ def add_tasks_to_category(category):
             category_file['next_task_id'] += 1
         category_file['unfinished'] = unfinished_tasks
 
-def set_task_as_done(category, task_id):
-    # Get the category file path
-    # Get tasks for all the sections
-    # Find the appropriate task_id from the unfinished section
-        # If not found then throw error
-    # If an appropriate task is found then take it out of the unfinished section and put in into
-    #   the finished section
-    pass
+def move_task(category, task_id, from_section, to_section):
+    with shelve.open(get_category_file_path(category)) as category_file:
+        from_tasks = category_file[from_section]
+        to_tasks = category_file[to_section]
+
+        try:
+            task_index = next(
+                i
+                for i, task in enumerate(from_tasks)
+                if task['id'] == task_id
+            )
+            print(task_index)
+        except StopIteration:
+            print("Task ID '{}' not found in section '{}' of category '{}'".format(
+                task_id, 
+                from_section,
+                category
+            ))
+            return
+
+        task_to_move = from_tasks.pop(task_index)
+        to_tasks.append(task_to_move)
+
+        category_file[from_section] = from_tasks
+        category_file[to_section] = to_tasks
 
 def edit_category(category, raw=False):
     # Get the category file name
