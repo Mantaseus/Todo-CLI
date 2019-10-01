@@ -41,18 +41,35 @@ Options:
 from __future__ import print_function
 from __future__ import absolute_import
 from pprint import pprint
+import textwrap
 
 from docopt import docopt
+from tabulate import tabulate
 
-import category_manager
+from . import category_manager
 
 # HELPERS -----------------------------------------------------------------------------------------
 
+def wrap_text(text, width=category_manager.DEFAULT_TEXT_WIDTH):
+    return '\n'.join([
+        textwrap.fill(line, width=width)
+        for line in text.split('\n')
+    ])
+
 def print_tasks(category, tasks):
-    print("{} unfinished tasks for '{}'\n".format(len(tasks), category))
+    print("\n {} unfinished tasks for '{}'".format(len(tasks), category))
+
+    # Generate the data to print
+    data_to_print = []
     for task in tasks:
-        description = task.get('description', '')
-        print('{}. {}'.format(task.get('id', ''), description))
+        description = wrap_text(task.get('description', ''))
+        data_to_print.append([task.get('id'), description])
+
+    print(tabulate(
+        data_to_print,
+        ['ID', 'Description'],
+        tablefmt='fancy_grid'
+    ) + '\n')
 
 def print_categories(categories):
     print(categories)

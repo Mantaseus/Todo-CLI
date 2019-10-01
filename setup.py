@@ -30,5 +30,6 @@ setuptools.setup(
     ],
     install_requires = [
         'docopt',
+        'tabulate',
     ],
 )
