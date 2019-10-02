@@ -89,7 +89,10 @@ def print_tasks(category, section_name, limit=0):
     ) + '\n')
 
 def print_categories(categories):
-    print(categories)
+    print('\nCurrently available categories:')
+    for category in categories:
+        print('   ', category)
+    print()
 
 # ARGS HANDLERS -----------------------------------------------------------------------------------
 
