@@ -2,11 +2,12 @@
 Usage:
     todo
         [ -a | --all-unfinished-tasks ]
-        [ -t=<val> | --num-of-tasks-to-list=<val> ]
+        [ -n=<val> | --num-of-tasks-to-list=<val> ]
     todo 
         [ -a | --all-unfinished-tasks ]
         [ -c=<val> | --category-name=<val> ]
-        [ -t=<val> | --num-of-tasks-to-list=<val> ]
+        [ -t=<val> | --section-type=<val> ]
+        [ -n=<val> | --num-of-tasks-to-list=<val> ]
     todo add
     todo add <category_name>
     todo done <task_id>
@@ -24,7 +25,9 @@ Options:
         List out archived tasks
     -c=<val>, --category-name=<val>
         The name of the category to list tasks for
-    -t=<val>, --num-of-tasks-to-list=<val>
+    -t=<val>, --section-type=<val>
+        Lists tasks from the given section type
+    -n=<val>, --num-of-tasks-to-list=<val>
         The number of the highest priority tickets to print out [default: 3]
 """
 
@@ -51,6 +54,13 @@ def print_tasks(category, section_name, limit=0):
         tasks = category_manager.get_tasks_for_section(category, section_name)
     except Exception as e:
         print(e)
+        return
+
+    if not tasks:
+        print("No tasks found in section '{}' for category '{}'".format(
+            section_name,
+            category
+        ))
         return
 
     # If limit is not defined then show all tasks
@@ -93,7 +103,12 @@ def handle_default():
     if not args['--all-unfinished-tasks']:
         tasks_limit = int(args['--num-of-tasks-to-list'])
     
-    print_tasks(category_name, 'unfinished', tasks_limit)
+    # Get the section type
+    section = 'unfinished'
+    if args['--section-type']:
+        section = args['--section-type']
+
+    print_tasks(category_name, section, tasks_limit)
 
 def handle_add():
     category_name = args['<category_name>']

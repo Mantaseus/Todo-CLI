@@ -189,7 +189,13 @@ def get_tasks_for_section(category, section_name):
         raise Exception("The category '{}' does not exist".format(category))
 
     with shelve.open(get_category_file_path(category)) as category_file:
-        return category_file.get(section_name, [])
+        tasks = category_file.get(section_name, None)
+        if tasks == None:
+            raise Exception("Cannot find section '{}' in category '{}'".format(
+                section_name, 
+                category
+            ))
+        return tasks
 
 def add_tasks_to_category(category):
     user_input = _raw_input_editor(ADD_HELP_TEXT.format(category_name=category))
