@@ -14,6 +14,41 @@ DEFAULT_CATEGORY_FILE = os.path.expanduser('~/.todocli/default_cat')
 
 DEFAULT_TEXT_WIDTH = 70
 
+ADD_HELP_TEXT = """
+
+# Adding tasks to category '{category_name}'
+# 
+# Rules:
+# - Add tasks as bullet points using the markdown syntax ('-'). 
+# - The tasks can be multiline. 
+# - You can add multiple tasks at the same time using the bullet point syntax. 
+# - Any line starting with a '#' will be ignored. 
+# - Any lines between 2 lines starting with '-' are considered a part of the
+#   the previous task.
+# - Try to keep the line character width less than 70 to make the tasks look
+#   nicer when printed
+#
+# For example, the following would add 2 new tasks
+# - This is my first task
+#     - Some details about the first task
+# - This is the second task
+"""
+
+EDIT_HELP_TEXT = """
+# Editing tasks for category '{category_name}'
+# 
+# Rules:
+# - The numbers in front of the task descriptions are the task IDs. Do not
+#   mess with them or it could lead to erratic behavior
+# - You can move the tasks up or down to "prioritize" them relative to each other
+# - You can move a task from one section to another and that task will
+#   actually get moved over to that section. For example: If you move a task
+#   from the "Unfinished" section to the "Finished" section then that task
+#   will not appear in the list of unfinished tasks when you run `todo`
+# - If you delete a task from this list then it will be deleted permanently
+#   and will not be recoverable
+"""
+
 # PRIVATE: TEMP FILE MANAGEMENT -------------------------------------------------------------------
 # Copied from https://stackoverflow.com/a/48466593 with some modifications
 
@@ -156,18 +191,7 @@ def get_tasks_for_section(category, section_name):
         return category_file.get(section_name, [])
 
 def add_tasks_to_category(category):
-    help_text = "# Add tasks as bullet points using the markdown syntax ('-'). The tasks can\n" + \
-                "# be multiline. You can also add multiple tasks at the same time using the\n" + \
-                "# bullet point syntax. Any line starting with a '#' will be ignored. Any\n" + \
-                "# lines between 2 lines starting with '-' are considered a part of the\n" + \
-                "# the previous task.\n" + \
-                "#\n" + \
-                "# For example, the following would add 2 new tasks\n" + \
-                "# - This is my first task\n" + \
-                "#     - Some details about the first task\n" + \
-                "# - This is the second task\n\n"
-
-    user_input = _raw_input_editor(default=help_text)
+    user_input = _raw_input_editor(ADD_HELP_TEXT.format(category_name=category))
 
     # Parse the tasks out of the temp file
     raw_tasks = []
@@ -232,18 +256,18 @@ def move_task(category, task_id, from_section, to_section):
         category_file[to_section] = to_tasks
 
 def edit_category(category, raw=False):
-    # Get the category file name
-    # Get the tasks for the category
-    # Create a temporary file
-        # Generate the text to display in the file
-        # Write the text to the file
-    # Open the temp file in the default editor
-    # After the user is done editing open the temp file again
-        # For each section look at the task id, the done state (i.e. '[ ]' or '[X]') and the task
-        #   text
+    old_tasks_text = '# You can move '
 
-    # TODO description not fully defined
-    # Update the 
+    with shelve.open(get_category_file_path(category)) as category_file:
+        for category in ['unfinished', 'finished', 'archived']:
+            current_tasks_text += '# {}\n\n'.format(category.capitalize())
 
-    pass
+            for task in category_file[category]:
+                old_tasks_text += '{}. {}'.format(
+                    task['id'], 
+                    task['description']
+                )
+    
+    new_tasks_text = _raw_input_editor(current_tasks_text)
+    print(new_tasks_text)
 

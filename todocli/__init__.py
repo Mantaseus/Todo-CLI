@@ -14,30 +14,18 @@ Usage:
     todo delete <task_id>
     todo delete <category_name> <task_id>
     todo edit
-        [ -r | --raw ]
     todo edit <category_name>
-        [ -r | --raw ]
     todo cats
-        [ -l | --list-all ]
-        [ -d=<val> | --set-default-cat=<val> ]
-        [ -n=<val> | --create-new-cat=<val> ]
+    todo cats default <category_name>
+    todo cats new <category_name>
 
 Options:
     -a, --all-unfinished-tasks
-        Lists out all the unfinished tasks instead of just the top 3
-    -l, --list-all
-        List all categories resistered with the todo CLI
-    -r, --raw 
-        Edit the raw todo logs 
+        List out archived tasks
     -c=<val>, --category-name=<val>
         The name of the category to list tasks for
     -t=<val>, --num-of-tasks-to-list=<val>
         The number of the highest priority tickets to print out [default: 3]
-    -d=<val>, --set-default-cat=<val>
-        Set the provided <val> as the default category for all the
-        relevant commands
-    -n=<val>, --create-new-cat=<val>
-        Create a new category to group todo tasks in
 """
 
 from __future__ import print_function
@@ -131,15 +119,19 @@ def handle_delete():
     category_manager.move_task(category_name, task_id, 'unfinished', 'archived')
 
 def handle_edit():
-    pass
+    category_name = args['<category_name>']
+    if not category_name:
+        category_name = category_manager.get_default_category()
+
+    category_manager.edit_category(category_name)
 
 def handle_cats():
-    if args['--create-new-cat']:
-        category_manager.create_category(args['--create-new-cat'])
+    if args['new']:
+        category_manager.create_category(args['<category_name>'])
         return
 
-    if args['--set-default-cat']:
-        category_manager.set_default_category(args['--set-default-cat'])
+    if args['default']:
+        category_manager.set_default_category(args['<category_name>'])
         return
 
     # The default behavior is to just print out all the categories
