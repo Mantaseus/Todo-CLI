@@ -47,6 +47,7 @@ EDIT_HELP_TEXT = """
 #   will not appear in the list of unfinished tasks when you run `todo`
 # - If you delete a task from this list then it will be deleted permanently
 #   and will not be recoverable
+
 """
 
 # PRIVATE: TEMP FILE MANAGEMENT -------------------------------------------------------------------
@@ -256,18 +257,80 @@ def move_task(category, task_id, from_section, to_section):
         category_file[to_section] = to_tasks
 
 def edit_category(category, raw=False):
-    old_tasks_text = '# You can move '
+    old_tasks_text = EDIT_HELP_TEXT.format(category_name=category)
+    old_tasks_creation_dates = {}
 
+    # Prepare the text in the file with all the tasks formatted nicely
     with shelve.open(get_category_file_path(category)) as category_file:
-        for category in ['unfinished', 'finished', 'archived']:
-            current_tasks_text += '# {}\n\n'.format(category.capitalize())
+        for section in ['unfinished', 'finished', 'archived']:
+            old_tasks_text += '\n# {}\n\n'.format(section.capitalize())
 
-            for task in category_file[category]:
+            for task in category_file[section]:
+                old_tasks_creation_dates[task['id']] = task['created']
                 old_tasks_text += '{}. {}'.format(
                     task['id'], 
                     task['description']
                 )
     
-    new_tasks_text = _raw_input_editor(current_tasks_text)
-    print(new_tasks_text)
+    # Open the text in the editor and wait for the user to finish editing it
+    user_input = _raw_input_editor(old_tasks_text)
+
+    # Parse the tasks out of the user's input
+    raw_tasks = {
+        'unfinished': [],
+        'finished': [],
+        'archived': [],
+    }
+    max_task_id = 0
+    user_lines = user_input.split('\n')
+    section = ''
+    for line in user_lines:
+        # Ignore lines with '#' but check if this a section transition
+        if line.startswith('#'):
+            for category_name in raw_tasks.keys():
+                if line == '# {}'.format(category_name.capitalize()):
+                    section = category_name
+                    break
+            continue
+        
+        # If a valid markdown bullet point is found in the text then create a new empty entry
+        # in the raw_tasks list
+        if re.search('^\d\. *', line):
+            # Extract the number as the task id from the line
+            task_id = int(re.search('^\d', line).group())
+
+            if task_id > max_task_id:
+                max_task_id = task_id
+
+            # Save the task data. Don't save the description from the line yet because it will
+            # be added later
+            raw_tasks[category_name].append({
+                'id': task_id,
+                'created': old_tasks_creation_dates.get(task_id, datetime.now()),
+                'edited': datetime.now(),
+                'description': ''
+            })
+
+            # Remove the number part of the line
+            line = re.sub(r'^\d\. *', '', line) 
+
+        # If there is no entry in the raw_tasks list yet then skip
+        # This will make sure that any text before the first bullet point will be ignored
+        if not raw_tasks.get(section, None):
+            continue
+
+        # Append any line
+        raw_tasks[section][-1]['description'] += line + '\n'
+
+    # Edit the data in the category file for each section
+    with shelve.open(get_category_file_path(category)) as category_file:
+        for section in raw_tasks.keys():
+            category_file[section] = raw_tasks[section]
+
+        # If for some stupid reason the user decides to change the ids of a task and those
+        # ids end up being higher than the highest id before then it is possible that we will
+        # end up having an id conflict in the future. So, just update the `next_task_id` to be
+        # higher than the max task id set by the user
+        if category_file['next_task_id'] <= max_task_id:
+            category_file['next_task_id'] = max_task_id + 1
 

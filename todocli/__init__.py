@@ -57,8 +57,10 @@ def print_tasks(category, section_name, limit=0):
     if not limit:
         limit = len(tasks)
 
+    limited_tasks = tasks[:limit]
+
     print("\n Showing {}/{} {} tasks for '{}'".format(
-        limit,
+        len(limited_tasks),
         len(tasks),
         section_name,
         category
@@ -66,7 +68,7 @@ def print_tasks(category, section_name, limit=0):
 
     # Generate the data to print
     data_to_print = []
-    for task in tasks[:limit]:
+    for task in limited_tasks:
         description = wrap_text(task.get('description', ''))
         data_to_print.append([task.get('id'), description])
 
@@ -88,12 +90,10 @@ def handle_default():
 
     # Do the formatting for the printout
     tasks_limit = 0
-    if args['--all-unfinished-tasks']:
+    if not args['--all-unfinished-tasks']:
         tasks_limit = int(args['--num-of-tasks-to-list'])
     
     print_tasks(category_name, 'unfinished', tasks_limit)
-    print_tasks(category_name, 'finished', tasks_limit)
-    print_tasks(category_name, 'archived', tasks_limit)
 
 def handle_add():
     category_name = args['<category_name>']
