@@ -310,9 +310,9 @@ def edit_category(category, raw=False):
         
         # If a valid markdown bullet point is found in the text then create a new empty entry
         # in the raw_tasks list
-        if re.search('^\d\. *', line):
+        if re.search('^\d*\. *', line):
             # Extract the number as the task id from the line
-            task_id = int(re.search('^\d', line).group())
+            task_id = int(re.search('^\d*', line).group())
 
             if task_id > max_task_id:
                 max_task_id = task_id
@@ -327,7 +327,7 @@ def edit_category(category, raw=False):
             })
 
             # Remove the number part of the line
-            line = re.sub(r'^\d\. *', '', line) 
+            line = re.sub(r'^\d*\. *', '', line) 
 
         # If there is no entry in the raw_tasks list yet then skip
         # This will make sure that any text before the first bullet point will be ignored
