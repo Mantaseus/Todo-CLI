@@ -14,12 +14,16 @@ pip install simple-todo
 Usage:
     todo
         [ -a | --all-unfinished-tasks ]
+        [ -c=<val> | --category-name=<val> ]
+        [ -t=<val> | --section-type=<val> ]
         [ -n=<val> | --num-of-tasks-to-list=<val> ]
+        [ -i=<val> | --print-task-data-for-id=<val> ]
     todo 
         [ -a | --all-unfinished-tasks ]
         [ -c=<val> | --category-name=<val> ]
         [ -t=<val> | --section-type=<val> ]
         [ -n=<val> | --num-of-tasks-to-list=<val> ]
+        [ -i=<val> | --print-task-data-for-id=<val> ]
     todo add
     todo add <category_name>
     todo done <task_id>
