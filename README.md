@@ -56,30 +56,30 @@ A category is where your tasks are stored
 - Create one like this
 
     ```
-    todocli cats new <your_category_name_here>
+    todo cats new <your_category_name_here>
     ```
     - This creates a new directory `~/.todocli` which contains the data for all your categories
 - You can also specify your default category
 
     ```
-    todocli cats default <your_category_name_here>
+    todo cats default <your_category_name_here>
     ```
     - All relevant commands will use this default category if a `<category_name>` is not provided
 - You can see the current default category like this
 
     ```
-    todocli cats default
+    todo cats default
     ```
 - You can see all the available categories like this
 
     ```
-    todocli cats
+    todo cats
     ```
 
 ### Adding tasks to a category
 
 ```
-todocli add
+todo add
 ```
 
 - Opens a file in your default text editor
