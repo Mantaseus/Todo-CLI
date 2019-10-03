@@ -102,45 +102,6 @@ def _get_editor():
 
 # PRIVATE FUNCTIONS -------------------------------------------------------------------------------
 
-def _append_tasks_to_category_section(category_file_path, section_name, tasks):
-    # Get tasks for all the sections in the category file and put it in a dict (key is section_name,
-    #   value is list of tasks in that section)
-
-    # Append the tasks to the appropriate section list
-
-    # Write all the sections to the category file
-    pass
-
-def _get_sections_data_for_category(category_file_path):
-    # Read the category_file_path file line by line
-        # If line starts with '#' then it is a section heading
-        # Ignore any blank lines
-        # Each line that starts with a '\d\. ?[X?]/i' regex is a task
-            # Read the comment with the create and write times and convert them to datetime objs
-            # Get the ID from the number at the front of the task
-        # Any line between two tasks is part of the task that came before
-    pass
-
-def _get_tasks_from_user(category_file_path):
-    # Create a temp file
-    # Open the temp file in the default editor
-    # Extract the data from the temp file and return it
-    return ''
-
-def _add_bulleted_tasks_to_category(category_file_path):
-    # Extract Each main bullet point
-
-    # Read the current max task ID from the category
-
-    # For each bullet point
-        # Assign an ID to it higher than the highest ID in the existing category
-        # Given each task a create time
-        # Store the data in a dict
-
-    # Write the data to the unfinished section
-    _append_tasks_to_category_section(category_file_path, 'Unfinished', [])
-    pass
-
 def _get_task_ids(tasks_list, sections):
     task_ids = []
     for section in sections:
