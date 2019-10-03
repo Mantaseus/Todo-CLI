@@ -16,6 +16,7 @@ DEFAULT_TEXT_WIDTH = 70
 
 ADD_HELP_TEXT = """
 
+<!--
 # Adding tasks to category '{category_name}'
 # 
 # Rules:
@@ -32,9 +33,10 @@ ADD_HELP_TEXT = """
 # - This is my first task
 #     - Some details about the first task
 # - This is the second task
+-->
 """
 
-EDIT_HELP_TEXT = """
+EDIT_HELP_TEXT = """<!--
 # Editing tasks for category '{category_name}'
 # 
 # Rules:
@@ -52,6 +54,7 @@ EDIT_HELP_TEXT = """
 #   moved to the 'Archived' section once you save and exit
 # - If you delete an item from the 'Archived' section then it will be deleted
 #   forever
+-->
 
 """
 
@@ -235,13 +238,13 @@ def add_tasks_to_category(category):
     raw_tasks = []
     user_lines = user_input.split('\n')
     for line in user_lines:
-        # Ignore lines with '#'
-        if line.startswith('#'):
+        # Ignore lines starting with '#' and HTML comment tags
+        if line.startswith('#') or line.startswith('<!--') or line.startswith('-->'):
             continue
         
         # If a valid markdown bullet point is found in the text then create a new empty entry
         # in the raw_tasks list
-        if line.startswith('-'):
+        if re.search('^- *', line):
             raw_tasks.append('')
 
             # Remove the bullet point from the line
