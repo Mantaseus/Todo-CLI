@@ -2,12 +2,16 @@
 Usage:
     todo
         [ -a | --all-unfinished-tasks ]
+        [ -c=<val> | --category-name=<val> ]
+        [ -t=<val> | --section-type=<val> ]
         [ -n=<val> | --num-of-tasks-to-list=<val> ]
+        [ -i=<val> | --print-task-data-for-id=<val> ]
     todo 
         [ -a | --all-unfinished-tasks ]
         [ -c=<val> | --category-name=<val> ]
         [ -t=<val> | --section-type=<val> ]
         [ -n=<val> | --num-of-tasks-to-list=<val> ]
+        [ -i=<val> | --print-task-data-for-id=<val> ]
     todo add
     todo add <category_name>
     todo done <task_id>
@@ -31,6 +35,9 @@ Options:
         Lists tasks from the given section type
     -n=<val>, --num-of-tasks-to-list=<val>
         The number of the highest priority tickets to print out [default: 3]
+    -i=<val>, --print-task-data-for-id=<val>
+        Print out details about a given task like the creation time and last
+        edited time, etc.
 """
 
 from __future__ import print_function
@@ -101,12 +108,53 @@ def print_categories(categories):
             print('   ', category)
     print()
 
+def print_task_data(category, task_id):
+    # Get all the tasks for the category
+    tasks_list = {
+        'unfinished': category_manager.get_tasks_for_section(category, 'unfinished'),
+        'finished': category_manager.get_tasks_for_section(category, 'finished'),
+        'archived': category_manager.get_tasks_for_section(category, 'archived'),
+    }
+
+    # Find the task in the list of tasks
+    task_data = {}
+    task_section = ''
+    for section in tasks_list.keys():
+        try:
+            task_data = next(
+                task
+                for task in tasks_list[section]
+                if task['id'] == task_id
+            )
+            task_section = section
+            break
+        except StopIteration:
+            continue
+
+    if not task_data:
+        print("Could not find a task for task ID '{}' in category '{}'".format(task_id, category))
+        return
+
+    # Print out the data
+    print()
+    print('       ID:', task_id)
+    print(' Category:', category)
+    print('     Type:', section)
+    print('  Created:', task_data['created'])
+    print('   Edited:', task_data['edited'])
+    print('\nDescription')
+    print('-------------\n\n{}\n'.format(task_data['description']))
+
 # ARGS HANDLERS -----------------------------------------------------------------------------------
 
 def handle_default():
     category_name = args['--category-name']
     if not category_name:
         category_name = category_manager.get_default_category()
+
+    if args['--print-task-data-for-id']:
+        print_task_data(category_name, int(args['--print-task-data-for-id']))
+        return
 
     # Do the formatting for the printout
     tasks_limit = 0
