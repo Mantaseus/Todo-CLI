@@ -80,7 +80,7 @@ def _raw_input_editor(default=None, editor=None):
         except Exception as e:
             # Some error happened. Do nothing
             print(e)
-            print('Add operation canceled')
+            print('Operation canceled')
             return ''
 
         # Get the output from the temp file
@@ -239,7 +239,7 @@ def add_tasks_to_category(category):
                 'id': category_file['next_task_id'],
                 'created': datetime.now(),
                 'edited': datetime.now(),
-                'description': task
+                'description': task.rstrip()
             })
             category_file['next_task_id'] += 1
         category_file['unfinished'] = unfinished_tasks
@@ -280,13 +280,15 @@ def edit_category(category, raw=False):
 
             for task in category_file[section]:
                 old_tasks_creation_dates[task['id']] = task['created']
-                old_tasks_text += '{}. {}'.format(
+                old_tasks_text += '{}. {}\n'.format(
                     task['id'], 
                     task['description']
                 )
     
     # Open the text in the editor and wait for the user to finish editing it
     user_input = _raw_input_editor(old_tasks_text)
+    if not user_input:
+        return
 
     # Parse the tasks out of the user's input
     raw_tasks = {
@@ -334,6 +336,11 @@ def edit_category(category, raw=False):
 
         # Append any line
         raw_tasks[section][-1]['description'] += line + '\n'
+
+    # Cleanup any trailing new lines
+    for section in raw_tasks.keys():
+        for task in raw_tasks[section]:
+            task['description'] = task['description'].rstrip()
 
     # Edit the data in the category file for each section
     with shelve.open(get_category_file_path(category)) as category_file:
