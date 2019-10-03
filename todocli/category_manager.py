@@ -47,6 +47,11 @@ EDIT_HELP_TEXT = """
 #   will not appear in the list of unfinished tasks when you run `todo`
 # - If you delete a task from this list then it will be deleted permanently
 #   and will not be recoverable
+# - If you delete an item from the 'Unfinished' or 'Finished' section and don't
+#   move it to the 'Archived' section then those items will be automatically
+#   moved to the 'Archived' section once you save and exit
+# - If you delete an item from the 'Archived' section then it will be deleted
+#   forever
 
 """
 
@@ -132,6 +137,25 @@ def _add_bulleted_tasks_to_category(category_file_path):
     # Write the data to the unfinished section
     _append_tasks_to_category_section(category_file_path, 'Unfinished', [])
     pass
+
+def _get_task_ids(tasks_list, sections):
+    task_ids = []
+    for section in sections:
+        for task in tasks_list[section]:
+            task_ids.append(task['id'])
+    return task_ids
+
+def _get_task_for_task_id(tasks_list, task_id):
+    for section in tasks_list.keys():
+        try:
+            return next(
+                task
+                for task in tasks_list[section]
+                if task['id'] == task_id
+            )
+        except StopIteration:
+            continue
+    return {}
 
 # PUBLIC FUNCTIONS --------------------------------------------------------------------------------
 
@@ -272,11 +296,13 @@ def move_task(category, task_id, from_section, to_section):
 def edit_category(category, raw=False):
     old_tasks_text = EDIT_HELP_TEXT.format(category_name=category)
     old_tasks_creation_dates = {}
+    old_tasks = {}
 
     # Prepare the text in the file with all the tasks formatted nicely
     with shelve.open(get_category_file_path(category)) as category_file:
         for section in ['unfinished', 'finished', 'archived']:
             old_tasks_text += '\n# {}\n\n'.format(section.capitalize())
+            old_tasks[section] = category_file[section]
 
             for task in category_file[section]:
                 old_tasks_creation_dates[task['id']] = task['created']
@@ -342,6 +368,22 @@ def edit_category(category, raw=False):
         for task in raw_tasks[section]:
             task['description'] = task['description'].rstrip()
 
+    # Find out which tasks were removed from 'unfinished' or 'finished' section and move them
+    # to the 'archived' section if they are not already there
+    old_important_task_ids = _get_task_ids(old_tasks, ['unfinished', 'finished'])
+    new_task_ids = _get_task_ids(raw_tasks, raw_tasks.keys())
+    for task_id in old_important_task_ids:
+        if task_id not in new_task_ids:
+            task_to_archive = _get_task_for_task_id(old_tasks, task_id)
+
+            # We couldn't find the actual task details. Skip it
+            if not task_to_archive:
+                continue
+
+            # Update the edited time on the task and save it to the 'archived' section
+            task_to_archive['edited'] = datetime.now()
+            raw_tasks['archived'].append(task_to_archive)
+    
     # Edit the data in the category file for each section
     with shelve.open(get_category_file_path(category)) as category_file:
         for section in raw_tasks.keys():
