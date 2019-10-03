@@ -91,9 +91,14 @@ def print_tasks(category, section_name, limit=0):
     ) + '\n')
 
 def print_categories(categories):
+    default_category = category_manager.get_default_category()
+
     print('\nCurrently available categories:')
     for category in categories:
-        print('   ', category)
+        if category == default_category:
+            print('  >', category)
+        else:
+            print('   ', category)
     print()
 
 # ARGS HANDLERS -----------------------------------------------------------------------------------
