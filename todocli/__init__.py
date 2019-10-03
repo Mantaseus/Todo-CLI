@@ -19,6 +19,7 @@ Usage:
     todo cats
     todo cats default <category_name>
     todo cats new <category_name>
+    todo cats remove <category_name>
 
 Options:
     -a, --all-unfinished-tasks
@@ -150,6 +151,11 @@ def handle_cats():
 
     if args['default']:
         category_manager.set_default_category(args['<category_name>'])
+        return
+
+    if args['remove']:
+        category_manager.delete_category(args['<category_name>'])
+        print("Category '{}' removed forever".format(args['<category_name>']))
         return
 
     # The default behavior is to just print out all the categories

@@ -184,6 +184,13 @@ def create_category(category):
     if not get_default_category():
         set_default_category(category)
 
+def delete_category(category):
+    # Check that the category exists. If it does then exit
+    if not check_category_exists(category):
+        print("Can not delete a unexistent category '{}'".format(category))
+        return
+    os.remove(get_category_file_path(category))
+
 def get_tasks_for_section(category, section_name):
     if not check_category_exists(category):
         raise Exception("The category '{}' does not exist".format(category))
