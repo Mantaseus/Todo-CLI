@@ -17,6 +17,7 @@ Usage:
     todo edit
     todo edit <category_name>
     todo cats
+    todo cats default
     todo cats default <category_name>
     todo cats new <category_name>
     todo cats remove <category_name>
@@ -150,7 +151,10 @@ def handle_cats():
         return
 
     if args['default']:
-        category_manager.set_default_category(args['<category_name>'])
+        if args['<category_name>']:
+            category_manager.set_default_category(args['<category_name>'])
+        else:
+            print("The default category is '{}'".format(category_manager.get_default_category()))
         return
 
     if args['remove']:
