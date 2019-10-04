@@ -2,11 +2,17 @@
 
 A simple command line Todo program written in Python. It allows you to categorize your tasks, add, remove and edit your tasks all from the command line.
 
-## Installation
+## Installation and setup
 
 ```
 pip install py-todo-cli
 ```
+
+The `add` and `edit` commands require that you have the `VISUAL` or `EDITOR` environment variables set to your preferred text editor
+- The script will default to `vim` if the `VISUAL` and `EDITOR` environment variables are empty
+- But this can cause issues on Windows where vim may not be available by default
+    - In that case make sure to set your `EDITOR` environment variable to notepad or your preferred text editor
+    - Installing vim is recommended though
 
 ## Commands
 
