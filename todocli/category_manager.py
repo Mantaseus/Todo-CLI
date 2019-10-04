@@ -69,7 +69,7 @@ EDIT_HELP_TEXT = """<!--
 # PRIVATE: TEMP FILE MANAGEMENT -------------------------------------------------------------------
 # Copied from https://stackoverflow.com/a/48466593 with some modifications
 
-def _raw_input_editor(default=None, editor=None):
+def _raw_input_editor(default=None, editor=None, start_at_line=0):
     with tempfile.NamedTemporaryFile(mode='r+') as tmpfile:
         # Write the default text to the temp file
         if default:
@@ -83,6 +83,7 @@ def _raw_input_editor(default=None, editor=None):
         command = [editor, tmpfile.name]
         if editor in ['vi', 'vim']:
             # Setup vi editor to enforce auto wrapping after 80 lines
+            command.append('+{}'.format(start_at_line))
             command.append('-c')
             command.append('set textwidth={}'.format(DEFAULT_TEXT_WIDTH))
             command.append('-c')
@@ -95,8 +96,7 @@ def _raw_input_editor(default=None, editor=None):
             subprocess.check_call(command)
         except Exception as e:
             # Some error happened. Do nothing
-            print(e)
-            print('Operation canceled')
+            print('Error occured. Operation canceled')
             return ''
 
         # Get the output from the temp file
@@ -285,7 +285,10 @@ def edit_category(category, raw=False):
                 )
     
     # Open the text in the editor and wait for the user to finish editing it
-    user_input = _raw_input_editor(old_tasks_text)
+    user_input = _raw_input_editor(
+        old_tasks_text, 
+        start_at_line=EDIT_HELP_TEXT.count('\n')+2
+    )
     if not user_input:
         return
 
