@@ -106,7 +106,7 @@ def _raw_input_editor(default=None, editor=None, start_at_line=0):
 def _get_editor():
     return (os.environ.get('VISUAL')
         or os.environ.get('EDITOR')
-        or 'vi')
+        or 'vim')
 
 # PRIVATE FUNCTIONS -------------------------------------------------------------------------------
 
