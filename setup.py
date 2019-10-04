@@ -7,13 +7,13 @@ if os.path.isfile("README.md"):
         long_description = fh.read()
 
 setuptools.setup(
-    name="todocli",
-    version="0.2.1",
+    name="py-todo-cli",
+    version="0.1.1",
     author="Mantaseus",
-    description = 'A module that installs a command line program to manage TODO lists',
+    description = 'A module that installs a command line program to manage simple TODO lists',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url = 'http://sys-ghar/gitea/mantaseus/todo_cli',
+    url = 'https://github.com/Mantaseus/Todo-CLI.git',
     license = 'MIT',
 
     packages = ['todocli'],
@@ -24,8 +24,7 @@ setuptools.setup(
     },
 
     classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: MIT License",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     install_requires = [

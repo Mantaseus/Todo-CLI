@@ -94,7 +94,7 @@ def print_tasks(category, section_name, limit=0):
     print(tabulate(
         data_to_print,
         ['ID', 'Description'],
-        tablefmt='fancy_grid'
+        tablefmt='psql'
     ) + '\n')
 
 def print_categories(categories):
