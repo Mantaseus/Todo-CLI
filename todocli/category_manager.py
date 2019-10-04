@@ -252,6 +252,7 @@ def move_task(category, task_id, from_section, to_section):
             return
 
         task_to_move = from_tasks.pop(task_index)
+        task_to_move['edited'] = datetime.now()
         to_tasks.append(task_to_move)
 
         category_file[from_section] = from_tasks
