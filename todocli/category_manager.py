@@ -47,6 +47,14 @@ EDIT_HELP_TEXT = """<!--
 #   actually get moved over to that section. For example: If you move a task
 #   from the "Unfinished" section to the "Finished" section then that task
 #   will not appear in the list of unfinished tasks when you run `todo`
+# - Add new tasks by starting the point with a `-`. The priority position of the
+#   new task will be respected when it gets created. For example:
+#
+#   ```
+#   1. An old task
+#   - This will be a new task that will be prioritized in this position
+#   2. Also another old task
+#   ```
 # - If you delete a task from this list then it will be deleted permanently
 #   and will not be recoverable
 # - If you delete an item from the 'Unfinished' or 'Finished' section and don't
@@ -288,20 +296,24 @@ def edit_category(category, raw=False):
         'archived': [],
     }
     max_task_id = 0
-    user_lines = user_input.split('\n')
     section = ''
-    for line in user_lines:
+    for line in user_input.split('\n'):
         # Ignore lines with '#' but check if this a section transition
-        if line.startswith('#'):
+        if line.startswith('#') or line.startswith('<!--') or line.startswith('-->'):
             for category_name in raw_tasks.keys():
                 if line == '# {}'.format(category_name.capitalize()):
                     section = category_name
                     break
             continue
+
+        # Ignore everything if we havn't gotten into a section yet
+        if not section:
+            continue
         
-        # If a valid markdown bullet point is found in the text then create a new empty entry
-        # in the raw_tasks list
         if re.search('^\d*\. *', line):
+            # If a numbered bullet point is found in the text then create a new empty entry
+            # in the raw_tasks list
+
             # Extract the number as the task id from the line
             task_id = int(re.search('^\d*', line).group())
 
@@ -310,7 +322,7 @@ def edit_category(category, raw=False):
 
             # Save the task data. Don't save the description from the line yet because it will
             # be added later
-            raw_tasks[category_name].append({
+            raw_tasks[section].append({
                 'id': task_id,
                 'created': old_tasks_creation_dates.get(task_id, datetime.now()),
                 'edited': datetime.now(),
@@ -319,6 +331,18 @@ def edit_category(category, raw=False):
 
             # Remove the number part of the line
             line = re.sub(r'^\d*\. *', '', line) 
+        elif re.search('^- *', line):
+            # This is a new task that did not exist before. So, we can not give it an ID yet.
+            # Store it for now and we will give it an ID later when it gets written
+            raw_tasks[section].append({
+                'id': -1,
+                'created': datetime.now(),
+                'edited': datetime.now(),
+                'description': ''
+            })
+
+            # Remove the bullet point from the line
+            line = re.sub(r'^- *', '', line) 
 
         # If there is no entry in the raw_tasks list yet then skip
         # This will make sure that any text before the first bullet point will be ignored
@@ -351,13 +375,22 @@ def edit_category(category, raw=False):
     
     # Edit the data in the category file for each section
     with shelve.open(get_category_file_path(category)) as category_file:
-        for section in raw_tasks.keys():
-            category_file[section] = raw_tasks[section]
-
         # If for some stupid reason the user decides to change the ids of a task and those
-        # ids end up being higher than the highest id before then it is possible that we will
+        # ids end up being higher than the highest id we had before then it is possible that we will
         # end up having an id conflict in the future. So, just update the `next_task_id` to be
         # higher than the max task id set by the user
         if category_file['next_task_id'] <= max_task_id:
             category_file['next_task_id'] = max_task_id + 1
+
+        # Give new IDs to the new tasks
+        for section in raw_tasks.keys():
+            for task in raw_tasks[section]:
+                if task['id'] == -1:
+                    task['id'] = category_file['next_task_id']
+                    category_file['next_task_id'] += 1
+
+        # Save all the tasks to the file data
+        for section in raw_tasks.keys():
+            category_file[section] = raw_tasks[section]
+
 
