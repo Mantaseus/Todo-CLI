@@ -5,7 +5,7 @@ A simple command line Todo program written in Python. It allows you to categoriz
 ## Installation
 
 ```
-pip install simple-todo
+pip install py-todo-cli
 ```
 
 ## Commands
