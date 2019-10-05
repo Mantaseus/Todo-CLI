@@ -1,6 +1,7 @@
 from __future__ import print_function
 from pprint import pprint
 from datetime import datetime
+from contextlib import closing
 import os
 import shelve
 import tempfile
@@ -70,17 +71,21 @@ EDIT_HELP_TEXT = """<!--
 # Copied from https://stackoverflow.com/a/48466593 with some modifications
 
 def _raw_input_editor(default=None, editor=None, start_at_line=0):
-    with tempfile.NamedTemporaryFile(mode='r+') as tmpfile:
+    tmpfile = tempfile.NamedTemporaryFile(mode='r+', delete=False)
+    tmpfile_name = tmpfile.name
+
+    try:
         # Write the default text to the temp file
         if default:
             tmpfile.write(default)
             tmpfile.flush()
+            tmpfile.close()
 
         # Get the available editor
         editor = editor or _get_editor()
 
         # Build the command to open the file in the editor
-        command = [editor, tmpfile.name]
+        command = [editor, tmpfile_name]
         if editor in ['vi', 'vim']:
             # Setup vi editor to enforce auto wrapping after 80 lines
             command.append('+{}'.format(start_at_line))
@@ -95,13 +100,18 @@ def _raw_input_editor(default=None, editor=None, start_at_line=0):
         try:
             subprocess.check_call(command)
         except Exception as e:
-            # Some error happened. Do nothing
-            print('Error occured. Operation canceled')
+            raise Exception('Error occured while editing the file in your editor. Operation cancelled')
             return ''
 
-        # Get the output from the temp file
-        tmpfile.seek(0)
-        return tmpfile.read().strip()
+        with open(tmpfile_name, 'r') as tmpfile:
+            # Get the output from the temp file
+            tmpfile.seek(0)
+            return tmpfile.read().strip()
+    except Exception as e:
+        print(e)
+        return ''
+    finally:
+        os.remove(tmpfile_name)
 
 def _get_editor():
     return (os.environ.get('VISUAL')
@@ -170,7 +180,7 @@ def create_category(category):
     
     # Write the text for the unfinished and finished sections of the categorys to the 
     # category_file_path
-    with shelve.open(get_category_file_path(category)) as category_file:
+    with closing(shelve.open(get_category_file_path(category))) as category_file:
         category_file['unfinished'] = []
         category_file['finished'] = []
         category_file['archived'] = []
@@ -191,7 +201,7 @@ def get_tasks_for_section(category, section_name):
     if not check_category_exists(category):
         raise Exception("The category '{}' does not exist".format(category))
 
-    with shelve.open(get_category_file_path(category)) as category_file:
+    with closing(shelve.open(get_category_file_path(category))) as category_file:
         tasks = category_file.get(section_name, None)
         if tasks == None:
             raise Exception("Cannot find section '{}' in category '{}'".format(
@@ -228,7 +238,7 @@ def add_tasks_to_category(category):
         raw_tasks[-1] += line + '\n'
 
     # Append the tasks to unfinished section of the categories
-    with shelve.open(get_category_file_path(category)) as category_file:
+    with closing(shelve.open(get_category_file_path(category))) as category_file:
         unfinished_tasks = category_file['unfinished']
         for task in raw_tasks:
             unfinished_tasks.append({
@@ -241,7 +251,7 @@ def add_tasks_to_category(category):
         category_file['unfinished'] = unfinished_tasks
 
 def move_task(category, task_id, from_section, to_section):
-    with shelve.open(get_category_file_path(category)) as category_file:
+    with closing(shelve.open(get_category_file_path(category))) as category_file:
         from_tasks = category_file[from_section]
         to_tasks = category_file[to_section]
 
@@ -272,7 +282,7 @@ def edit_category(category, raw=False):
     old_tasks = {}
 
     # Prepare the text in the file with all the tasks formatted nicely
-    with shelve.open(get_category_file_path(category)) as category_file:
+    with closing(shelve.open(get_category_file_path(category))) as category_file:
         for section in ['unfinished', 'finished', 'archived']:
             old_tasks_text += '\n# {}\n\n'.format(section.capitalize())
             old_tasks[section] = category_file[section]
@@ -377,7 +387,7 @@ def edit_category(category, raw=False):
             raw_tasks['archived'].append(task_to_archive)
     
     # Edit the data in the category file for each section
-    with shelve.open(get_category_file_path(category)) as category_file:
+    with closing(shelve.open(get_category_file_path(category))) as category_file:
         # If for some stupid reason the user decides to change the ids of a task and those
         # ids end up being higher than the highest id we had before then it is possible that we will
         # end up having an id conflict in the future. So, just update the `next_task_id` to be
