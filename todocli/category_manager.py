@@ -137,7 +137,7 @@ def _get_task_for_task_id(tasks_list, task_id):
             ), section
         except StopIteration:
             continue
-    return {}
+    return {}, ''
 
 # PUBLIC FUNCTIONS --------------------------------------------------------------------------------
 
