@@ -134,7 +134,7 @@ def _get_task_for_task_id(tasks_list, task_id):
                 task
                 for task in tasks_list[section]
                 if task['id'] == task_id
-            )
+            ), section
         except StopIteration:
             continue
     return {}
@@ -278,7 +278,6 @@ def move_task(category, task_id, from_section, to_section):
 
 def edit_category(category, raw=False):
     old_tasks_text = EDIT_HELP_TEXT.format(category_name=category)
-    old_tasks_creation_dates = {}
     old_tasks = {}
 
     # Prepare the text in the file with all the tasks formatted nicely
@@ -288,7 +287,6 @@ def edit_category(category, raw=False):
             old_tasks[section] = category_file[section]
 
             for task in category_file[section]:
-                old_tasks_creation_dates[task['id']] = task['created']
                 old_tasks_text += '{}. {}\n'.format(
                     task['id'], 
                     task['description']
@@ -337,8 +335,6 @@ def edit_category(category, raw=False):
             # be added later
             raw_tasks[section].append({
                 'id': task_id,
-                'created': old_tasks_creation_dates.get(task_id, datetime.now()),
-                'edited': datetime.now(),
                 'description': ''
             })
 
@@ -349,8 +345,6 @@ def edit_category(category, raw=False):
             # Store it for now and we will give it an ID later when it gets written
             raw_tasks[section].append({
                 'id': -1,
-                'created': datetime.now(),
-                'edited': datetime.now(),
                 'description': ''
             })
 
@@ -373,9 +367,9 @@ def edit_category(category, raw=False):
     # Find out which tasks were removed from 'unfinished' or 'finished' section and move them
     # to the 'archived' section if they are not already there
     old_important_task_ids = _get_task_ids(old_tasks, ['unfinished', 'finished'])
-    new_task_ids = _get_task_ids(raw_tasks, raw_tasks.keys())
+    edited_task_ids = _get_task_ids(raw_tasks, raw_tasks.keys())
     for task_id in old_important_task_ids:
-        if task_id not in new_task_ids:
+        if task_id not in edited_task_ids:
             task_to_archive = _get_task_for_task_id(old_tasks, task_id)
 
             # We couldn't find the actual task details. Skip it
@@ -386,6 +380,24 @@ def edit_category(category, raw=False):
             task_to_archive['edited'] = datetime.now()
             raw_tasks['archived'].append(task_to_archive)
     
+    # Set the 'edited' time for the tasks that had their description changed or were moved to a
+    # different section.
+    for section in raw_tasks.keys():
+        for task in raw_tasks[section]:
+            old_task, old_task_section = _get_task_for_task_id(old_tasks, task['id'])
+            if not old_task:
+                continue
+
+            if old_task['description'] != task['description'] or old_task_section != section:
+                # If the description or section has changed then set 'edited' time to the 
+                # current time
+                task['created'] = old_task.get('created', datetime.now())
+                task['edited'] = datetime.now()
+            else:
+                # If nothing changable has changed then just use the old task's times
+                task['created'] = old_task.get('created', datetime.now())
+                task['edited'] = old_task.get('edited', datetime.now())
+
     # Edit the data in the category file for each section
     with closing(shelve.open(get_category_file_path(category))) as category_file:
         # If for some stupid reason the user decides to change the ids of a task and those
@@ -400,6 +412,8 @@ def edit_category(category, raw=False):
             for task in raw_tasks[section]:
                 if task['id'] == -1:
                     task['id'] = category_file['next_task_id']
+                    task['created'] = datetime.now()
+                    task['edited'] = datetime.now()
                     category_file['next_task_id'] += 1
 
         # Save all the tasks to the file data
