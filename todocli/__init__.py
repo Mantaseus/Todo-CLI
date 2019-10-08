@@ -151,6 +151,9 @@ def handle_default():
     category_name = args['--category-name']
     if not category_name:
         category_name = category_manager.get_default_category()
+    if not category_manager.check_category_exists(category_name):
+        print("Category '{}' not found".format(category_name))
+        return
 
     if args['--print-task-data-for-id']:
         print_task_data(category_name, int(args['--print-task-data-for-id']))
@@ -172,6 +175,9 @@ def handle_add():
     category_name = args['<category_name>']
     if not category_name:
         category_name = category_manager.get_default_category()
+    if not category_manager.check_category_exists(category_name):
+        print("Category '{}' not found".format(category_name))
+        return
 
     category_manager.add_tasks_to_category(category_name)
 
@@ -179,6 +185,9 @@ def handle_done():
     category_name = args['<category_name>']
     if not category_name:
         category_name = category_manager.get_default_category()
+    if not category_manager.check_category_exists(category_name):
+        print("Category '{}' not found".format(category_name))
+        return
 
     task_id = int(args['<task_id>'])
     category_manager.move_task(category_name, task_id, 'unfinished', 'finished')
@@ -187,6 +196,9 @@ def handle_delete():
     category_name = args['<category_name>']
     if not category_name:
         category_name = category_manager.get_default_category()
+    if not category_manager.check_category_exists(category_name):
+        print("Category '{}' not found".format(category_name))
+        return
 
     task_id = int(args['<task_id>'])
     category_manager.move_task(category_name, task_id, 'unfinished', 'archived')
@@ -195,6 +207,9 @@ def handle_edit():
     category_name = args['<category_name>']
     if not category_name:
         category_name = category_manager.get_default_category()
+    if not category_manager.check_category_exists(category_name):
+        print("Category '{}' not found".format(category_name))
+        return
 
     category_manager.edit_category(category_name)
 
