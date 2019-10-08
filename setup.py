@@ -8,7 +8,7 @@ if os.path.isfile("README.md"):
 
 setuptools.setup(
     name="py-todo-cli",
-    version="0.1.3",
+    version="0.1.4",
     author="Mantaseus",
     description = 'A module that installs a command line program to manage simple TODO lists',
     long_description=long_description,
